@@ -122,7 +122,9 @@ All cryptographic operations on a targeted message use the cipher suite of
 the MLS group in which the message is sent ({{Section 5.1 of !RFC9420}}). In
 particular, the group's cipher suite determines:
 
-- the KEM, KDF, and AEAD used for the HPKE encryption of the message content
+- the Key Encapsulation Mechanism (KEM), Key Derivation Function (KDF), and
+  Authenticated Encryption with Associated Data (AEAD) used for the HPKE
+  encryption of the message content
   ({{application-data-encryption}}),
 - the KDF underlying the `MLS-Exporter` and `ExpandWithLabel` derivations
   ({{authentication}} and {{sender-data-encryption}}), including the value
@@ -215,7 +217,7 @@ cannot be used as a covert channel.
 
 The `TargetedMessageContent` struct is serialized and encrypted using HPKE.
 
-The HPKE context is a `TargetedMessageContext` struct with the
+The HPKE `info` is a serialized `TargetedMessageContext` struct with the
 following content:
 
 ~~~ tls
@@ -238,7 +240,7 @@ The `context` field binds the encryption to the recipient and sender leaf
 indices. The message is bound to the group state through the
 `targeted_message_psk`, as described in {{group-state-binding}}.
 
-The `TargetedMessageContext` struct is serialized as `hpke_context` and is used
+The `TargetedMessageContext` struct is serialized as `hpke_info` and is used
 by both the sender and the recipient. The recipient's leaf node HPKE encryption
 key from the ratchet tree of the epoch specified in the `TargetedMessage` is
 used as the recipient's public key `recipient_node_public_key` for the HPKE
@@ -250,7 +252,7 @@ The content of the `TargetedMessage.authenticated_data` field is used as the
 
 ~~~ tls
 (kem_output, ciphertext) = SealPSK(recipient_node_public_key,
-                                   hpke_context,
+                                   hpke_info,
                                    authenticated_data,
                                    targeted_message_content,
                                    targeted_message_psk,
@@ -282,7 +284,7 @@ struct:
 ~~~ tls
 targeted_message_content = OpenPSK(kem_output,
                   recipient_node_private_key,
-                  hpke_context,
+                  hpke_info,
                   authenticated_data,
                   ciphertext,
                   targeted_message_psk,
@@ -294,13 +296,12 @@ The functions `SealPSK` and `OpenPSK` are defined in {{Section 6.1 of
 
 ## Sender Data Encryption
 
-`TargetedMessageSenderAuthData` is encrypted similarly to `MLSSenderData` as
+`TargetedMessageSenderAuthData` is encrypted similarly to `SenderData` as
 described in {{Section 6.3.2 of !RFC9420}}. It contains the sender's leaf
-index, the signature over `TargetedMessageTBS`, and the Key Encapsulation
-Mechanism (KEM) output of the HPKE encryption.
+index, the signature over `TargetedMessageTBS`, and the KEM output of the HPKE
+encryption.
 
-The key and nonce provided to the Authenticated Encryption with Associated
-Data (AEAD) are computed as the Key Derivation Function (KDF) of the first
+The key and nonce provided to the AEAD are computed as the KDF of the first
 KDF.Nh bytes of the `ciphertext` generated in {{application-data-encryption}}.
 If the length of the ciphertext is less than KDF.Nh, the whole ciphertext is
 used. As with the `targeted_message_psk`, the `sender_auth_data_secret` is
@@ -372,9 +373,9 @@ retain the following key material and state for that epoch:
 - the leaf nodes of the ratchet tree, in order to look up the sender's leaf
   node.
 
-Support for past epochs is OPTIONAL, accepting only the current epoch is the
+Support for past epochs is OPTIONAL; accepting only the current epoch is the
 most conservative behavior. Retaining key material from past epochs weakens
-the Forward Secrecy properties described in {{forward-secrecy}}: targeted
+the forward secrecy properties described in {{forward-secrecy}}: targeted
 messages for an epoch remain decryptable for as long as that epoch's key
 material exists. Applications that accept messages from past epochs SHOULD
 bound the number of retained epochs and SHOULD delete the corresponding key
@@ -398,7 +399,7 @@ a valid ciphertext. It does not, however, authenticate which PSK holder
 produced the message. Sender identity relies entirely on the signature.
 
 Because the PSK is derived from the MLS key schedule, it is only valid for a
-specific group and epoch. The Forward Secrecy and Post-Compromise Security
+specific group and epoch. The forward secrecy and post-compromise security
 guarantees of the group key schedule therefore extend to targeted messages. The
 PSK also ensures that an attacker needs access to the private group state in
 addition to the HPKE and signature private keys, improving confidentiality
@@ -468,7 +469,7 @@ identity is therefore protected from the Delivery Service and from entities
 outside the group, but not from other group members who obtain the encrypted
 message.
 
-The encryption mechanism is the same as the one used for `MLSSenderData` in
+The encryption mechanism is the same as the one used for `SenderData` in
 {{Section 6.3.2 of !RFC9420}}, and the analysis of {{Section 16.3 of
 !RFC9420}} applies equally to targeted messages. In particular, using the
 same `sender_auth_data_secret` with the same ciphertext sample more than once
@@ -536,7 +537,7 @@ sender-side operations are not reproducible from the inputs alone; sender
 implementations can be tested by round-tripping against a receiver
 implementation.
 
-All vectors use the MTI MLS cipher suite
+All vectors use the mandatory-to-implement (MTI) MLS cipher suite
 MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519. All values except `cipher_suite`,
 `epoch`, the leaf indices, and `padding_length` (all decimal) are hex-encoded.
 
