@@ -399,7 +399,10 @@ produced the message. Sender identity relies entirely on the signature.
 
 Because the PSK is derived from the MLS key schedule, it is only valid for a
 specific group and epoch. The Forward Secrecy and Post-Compromise Security
-guarantees of the group key schedule therefore extend to targeted messages. The
+guarantees of the group key schedule therefore extend to targeted messages, but
+only at epoch granularity: the exported secrets are valid for the whole epoch,
+so they provide no forward secrecy between messages within an epoch (see
+{{forward-secrecy}}). The
 PSK also ensures that an attacker needs access to the private group state in
 addition to the HPKE and signature private keys, improving confidentiality
 guarantees against passive attackers and authentication guarantees against active
@@ -475,6 +478,13 @@ same `sender_auth_data_secret` with the same ciphertext sample more than once
 would reuse an AEAD key and nonce pair; with the AEAD algorithms of the
 cipher suites defined in {{!RFC9420}}, the probability of two ciphertext
 samples colliding is no more than 2^-128.
+
+The `recipient_leaf_index` field of a `TargetedMessage` is not encrypted. A
+Delivery Service that has the group's ratchet tree can therefore identify the
+recipient of each targeted message and observe how many targeted messages each
+member receives. Padding ({{padding}}) hides only the length of the content;
+applications that need to hide who receives targeted messages need additional
+measures, such as cover traffic.
 
 ## Replay Protection
 
