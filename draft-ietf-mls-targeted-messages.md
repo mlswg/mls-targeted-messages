@@ -68,6 +68,14 @@ protocols.
 This document defines the `mls_targeted_message` WireFormat, where the content
 is a `TargetedMessage`.
 
+Support for the `mls_targeted_message` WireFormat is signaled using the
+`supported_wire_formats` and `required_wire_formats` extensions defined in
+{{Section 5 of !I-D.ietf-mls-extensions}}. A sender MUST NOT send a
+`TargetedMessage` to a member whose `LeafNode` does not list
+`mls_targeted_message` in its `supported_wire_formats` extension, unless the
+`required_wire_formats` extension in the group's `GroupContext` includes
+`mls_targeted_message`.
+
 A `TargetedMessage` is carried in the `MLSMessage` envelope defined in
 {{Section 6 of !RFC9420}}:
 
