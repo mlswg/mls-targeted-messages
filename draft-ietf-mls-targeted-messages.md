@@ -453,7 +453,7 @@ from a secret tree, targeted messages have no per-message key derivation.
 Compromising the recipient's leaf private key therefore exposes all targeted
 messages encrypted to that key within the epoch. Forward secrecy is at epoch
 granularity only: it depends on the key schedule advancing to a new epoch and on
-the recipient deleting the previous epoch's leaf private key. Applications that
+the recipient deleting the past leaf private keys. Applications that
 require stronger forward secrecy guarantees SHOULD advance the epoch frequently.
 Accepting targeted messages from past epochs requires retaining old key
 material and further weakens forward secrecy, as described in
