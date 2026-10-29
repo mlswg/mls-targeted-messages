@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-22T03:43:51.656227+00:00",
+  "timestamp": "2026-10-29T04:49:45.511655+00:00",
   "repo": "mlswg/mls-targeted-messages",
   "labels": [
     {
@@ -178,9 +178,17 @@
       "labels": [],
       "body": "L450-456 says forward secrecy is \"at epoch granularity\", depends on \"the recipient deleting the previous epoch's leaf private key\", and that applications \"SHOULD advance the epoch frequently\". Under RFC 9420 a leaf's HPKE key changes only when that member updates its own leaf (Update, or a Commit whose path covers it); other members' Commits advance the epoch without touching it. So advancing the epoch doesn't rotate the recipient's key, and there's no per-epoch leaf key to delete.\n\nSuggest saying decryption needs both the recipient's leaf private key and that epoch's exporter-derived PSK, that forward secrecy depends on deleting old epoch secrets and on the recipient updating its own leaf, and replacing \"advance the epoch frequently\" with a SHOULD that recipients update their leaf regularly.\n\nFound reviewing -01 for mimid. Lines are draft-ietf-mls-targeted-messages.md at ae3ab52.\n",
       "createdAt": "2026-10-21T17:23:56Z",
-      "updatedAt": "2026-10-21T17:23:56Z",
+      "updatedAt": "2026-10-29T00:01:39Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "raphaelrobert",
+          "authorAssociation": "MEMBER",
+          "body": "I don't think this is correct. Advancing the epoch while following the deletion schedule from RFC9420 does give us per-epoch forward secrecy. It's not relevant that leaf keys are not rotated every epoch.",
+          "createdAt": "2026-10-29T00:01:39Z",
+          "updatedAt": "2026-10-29T00:01:39Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -441,7 +449,7 @@
       "labels": [],
       "body": "Editorial fixes found reviewing -01. No wire format or requirement changes.\n\n- Expand KEM, KDF and AEAD at first use (\u00a74.2), and use the short forms later in \u00a76.3.\n- The `TargetedMessageContext` passed to SealPSK/OpenPSK is HPKE's `info` parameter (RFC 9180), so call it that; `hpke_context` \u2192 `hpke_info` in the prose and pseudocode. Same bytes.\n- RFC 9420 \u00a76.3.2's struct is `SenderData`, not `MLSSenderData` (two places).\n- \"OPTIONAL, accepting\" comma splice \u2192 semicolon.\n- Lowercase \"forward secrecy\" and \"post-compromise security\" in running text; section titles unchanged.\n- Expand MTI in the test-vector section.\n\nLeft alone: the empty Acknowledgments section, which is yours to fill or drop.\n\nNot built locally (no kramdown-rfc here).\n",
       "createdAt": "2026-10-21T18:00:11Z",
-      "updatedAt": "2026-10-21T18:00:11Z",
+      "updatedAt": "2026-10-29T00:14:49Z",
       "baseRepository": "mlswg/mls-targeted-messages",
       "baseRefName": "main",
       "baseRefOid": "ecd8d7e19f3bb67d689488a0f8674db78e48f8be",
@@ -453,7 +461,34 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOPFs6J88AAAABUzrKbg",
+          "commit": {
+            "abbreviatedOid": "114d605"
+          },
+          "author": "raphaelrobert",
+          "authorAssociation": "MEMBER",
+          "state": "CHANGES_REQUESTED",
+          "body": "Looks good in general, just two nits.",
+          "createdAt": "2026-10-29T00:13:40Z",
+          "updatedAt": "2026-10-29T00:14:48Z",
+          "comments": [
+            {
+              "originalPosition": 100,
+              "body": "```suggestion\nAll vectors use the mandatory-to-implement MLS cipher suite\n```",
+              "createdAt": "2026-10-29T00:13:41Z",
+              "updatedAt": "2026-10-29T00:14:49Z"
+            },
+            {
+              "originalPosition": 70,
+              "body": "```suggestion\nSupport for past epochs is OPTIONAL. Accepting only the current epoch is the\n```",
+              "createdAt": "2026-10-29T00:14:16Z",
+              "updatedAt": "2026-10-29T00:14:49Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 14,
@@ -467,7 +502,7 @@
       "labels": [],
       "body": "Fixes #11.\n\nAdds a normative reference to draft-ietf-mls-extensions, says support is signalled with `supported_wire_formats` and `required_wire_formats`, and adds the rule: a sender MUST NOT send a TargetedMessage to a member whose LeafNode doesn't list `mls_targeted_message`, unless the GroupContext's `required_wire_formats` includes it.\n",
       "createdAt": "2026-10-21T18:11:14Z",
-      "updatedAt": "2026-10-21T18:11:14Z",
+      "updatedAt": "2026-10-28T23:52:53Z",
       "baseRepository": "mlswg/mls-targeted-messages",
       "baseRefName": "main",
       "baseRefOid": "ecd8d7e19f3bb67d689488a0f8674db78e48f8be",
@@ -479,7 +514,28 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOPFs6J88AAAABUzi4jQ",
+          "commit": {
+            "abbreviatedOid": "17743dd"
+          },
+          "author": "raphaelrobert",
+          "authorAssociation": "MEMBER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-28T23:52:52Z",
+          "updatedAt": "2026-10-28T23:52:53Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "```suggestion\nA member signals support for the `mls_targeted_message` WireFormat by listing\n  it in the `supported_wire_formats` extension of its `LeafNode`, as defined in\n  {{!I-D.ietf-mls-extensions}}. A group requires all of its members to support\n  the WireFormat by listing it in the `required_wire_formats` extension of its\n  `GroupContext`. A sender MUST NOT send a `TargetedMessage` to a member whose\n  `LeafNode` does not list `mls_targeted_message` in its `supported_wire_formats`\n  extension, unless the `required_wire_formats` extension in the group's\n  `GroupContext` includes `mls_targeted_message`.\n```",
+              "createdAt": "2026-10-28T23:52:53Z",
+              "updatedAt": "2026-10-28T23:52:53Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 15,
@@ -519,13 +575,66 @@
       "labels": [],
       "body": "Low-severity fixes from reviewing -01 for mimid; each is independent, so drop any you don't want.\n\n- Authentication: the text said the key schedule's forward secrecy and post-compromise security \"extend to targeted messages\", but the exported secrets are valid for a whole epoch, so the sentence now says the guarantee holds only at epoch granularity and points to the Forward Secrecy section.\n- Sender Identity Confidentiality: the section covered only the sender, so a new paragraph notes that `recipient_leaf_index` is sent in the clear and lets a Delivery Service that has the ratchet tree identify each message's recipient, and that padding hides only length, so hiding recipients needs measures such as cover traffic.\n\nNot changed here: whether `TargetedMessage.authenticated_data` must be framed as SafeAAD when the group has `safe_aad` (extensions-10 \u00a75 says AAD \"always starts with\" SafeAAD, which clashes with the raw replay nonce) is a design call for you; and the Appendix A vectors don't exercise the short-ciphertext branch (empty content, 17-byte ciphertext < Nh) or any rejection case, which needs new vectors from an implementation.",
       "createdAt": "2026-10-21T18:45:43Z",
-      "updatedAt": "2026-10-21T18:45:43Z",
+      "updatedAt": "2026-10-29T00:24:09Z",
       "baseRepository": "mlswg/mls-targeted-messages",
       "baseRefName": "main",
       "baseRefOid": "ecd8d7e19f3bb67d689488a0f8674db78e48f8be",
       "headRepository": "MarkAtwood/mls-targeted-messages",
       "headRefName": "lows",
       "headRefOid": "4ee8fbae2ca21c8249bd70258673022ee6c89b44",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOPFs6J88AAAABUztR_A",
+          "commit": {
+            "abbreviatedOid": "4ee8fba"
+          },
+          "author": "raphaelrobert",
+          "authorAssociation": "MEMBER",
+          "state": "CHANGES_REQUESTED",
+          "body": "Both changes are not really meaningful.",
+          "createdAt": "2026-10-29T00:19:09Z",
+          "updatedAt": "2026-10-29T00:24:09Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "I don't think this is meaningful. The recipient leaf index is needed for the DS to route the message correctly, much like the group ID is needed. We should not include this paragraph.",
+              "createdAt": "2026-10-29T00:19:09Z",
+              "updatedAt": "2026-10-29T00:24:09Z"
+            },
+            {
+              "originalPosition": 8,
+              "body": "This is redundant, since the group key schedule is a per-epoch construction.",
+              "createdAt": "2026-10-29T00:20:09Z",
+              "updatedAt": "2026-10-29T00:24:09Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 17,
+      "id": "PR_kwDOPFs6J88AAAABLZT6-w",
+      "title": "Fix wording on leaf private key deletion requirements",
+      "url": "https://github.com/mlswg/mls-targeted-messages/pull/17",
+      "state": "OPEN",
+      "author": "raphaelrobert",
+      "authorAssociation": "MEMBER",
+      "assignees": [],
+      "labels": [],
+      "body": "Alternative to #15.\nFixes #12.",
+      "createdAt": "2026-10-29T00:05:26Z",
+      "updatedAt": "2026-10-29T00:05:26Z",
+      "baseRepository": "mlswg/mls-targeted-messages",
+      "baseRefName": "main",
+      "baseRefOid": "ecd8d7e19f3bb67d689488a0f8674db78e48f8be",
+      "headRepository": "mlswg/mls-targeted-messages",
+      "headRefName": "clarify-fs",
+      "headRefOid": "79960a75db886c3bf1d1f862e6150a7c6c264ba6",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
