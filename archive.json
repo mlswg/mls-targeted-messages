@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-29T04:49:45.511655+00:00",
+  "timestamp": "2026-11-01T04:54:52.038598+00:00",
   "repo": "mlswg/mls-targeted-messages",
   "labels": [
     {
@@ -62,7 +62,7 @@
       "labels": [],
       "body": "As discussed at IETF 125, having a single TargetedMessage encrypted for multiple members at once, insures that if a single message is decrypted by multiple members, it had the same plaintext. This is a very desirable property. A client that does not want this property could sstill send distinct TargetedMessages with different plaintext to different members.\n",
       "createdAt": "2026-04-19T08:23:53Z",
-      "updatedAt": "2026-07-06T14:32:37Z",
+      "updatedAt": "2026-10-31T19:56:03Z",
       "closedAt": null,
       "comments": [
         {
@@ -92,6 +92,20 @@
           "body": "I'm not sure I follow your thoughts, especially the part about the \"honest DS\". If a DS is honest, what exactly are you worried about?\n\nFirst, a few clarifications on metadata:\n - TMs encrypt the sender inside `encrypted_sender_auth_data`, so that an adversary that's not a group member cannot tell who the sender is by just looking at the TM. This aligns with the base protocol, which in turn mirrors Signal's sealed-sender concept.\n - TMs *do not* encrypt the recipient, as the DS needs this information to forward the TM to the recipient. Without it, the DS would have to forward a TM to everyone in the group. Note that the recipient is represented only by the leaf index, which makes it somewhat pseudonymous, depending on the app's architecture.\n\nI think it would help structure the discussion if you answered the following questions:\n - What exactly is your threat model? What capabilities does an attacker have?\n - What security guarantees would you like to achieve? In particular, how do they differ from what you already get today by sending 3 TMs with a wrapped key and one ciphertext?\n - TMs are based on HPKE, to stay aligned with the base protocol. HPKE is fundamentally a two-party protocol. What construction are you proposing instead?\n\n",
           "createdAt": "2026-07-06T14:32:37Z",
           "updatedAt": "2026-07-06T14:32:37Z"
+        },
+        {
+          "author": "rohanmahy",
+          "authorAssociation": "NONE",
+          "body": "> I'm not sure I follow your thoughts, especially the part about the \"honest DS\". If a DS is honest, what exactly are you worried about?\n\nDishonest insiders who send different targeted content to a different members while pretending the content was the same.\n\n> First, a few clarifications on metadata:\n> \n> * TMs encrypt the sender inside `encrypted_sender_auth_data`, so that an adversary that's not a group member cannot tell who the sender is by just looking at the TM. This aligns with the base protocol, which in turn mirrors Signal's sealed-sender concept.\n> * TMs _do not_ encrypt the recipient, as the DS needs this information to forward the TM to the recipient. Without it, the DS would have to forward a TM to everyone in the group. Note that the recipient is represented only by the leaf index, which makes it somewhat pseudonymous, depending on the app's architecture.\n> \n> I think it would help structure the discussion if you answered the following questions:\n> \n> * What exactly is your threat model? What capabilities does an attacker have?\n\nCase 1: the attacker is malicious, but otherwise ordinary group member.\nCase 2: the attacker is a single malicious member colluding with a malicious DS (but the AS is honest and uncompromised).\n\n> * What security guarantees would you like to achieve? In particular, how do they differ from what you already get today by sending 3 TMs with a wrapped key and one ciphertext?\n\nHow do the 3 recipients verify they are receiving same plaintext?\n\n> * TMs are based on HPKE, to stay aligned with the base protocol. HPKE is fundamentally a two-party protocol. What construction are you proposing instead?\n\nOne like a Welcome, where there is a list of recipients, a single ephemeral key from which a key is derived to encrypt the plaintext and another derived to encrypt the sender. Each recipients gets an HPKE encrypted ciphertext of the ephemeral key.\n",
+          "createdAt": "2026-10-31T11:51:35Z",
+          "updatedAt": "2026-10-31T11:51:35Z"
+        },
+        {
+          "author": "raphaelrobert",
+          "authorAssociation": "MEMBER",
+          "body": "Thanks for the clarifications. I think we have two options here:\n\nOption A: We use TMs as they are specified today to build the Welcome-like construct you describe at the application layer.\n\nOption B: The Welcome-like construct becomes part of the draft instead.\n\nNow let's look at the properties of these options.\n\nEfficiency: They are roughly equivalent (modulo some byte shaving in the wire format).\n\nSecurity: I think this is where we are not really aligned. You seem to imply that Option B is inherently more secure than Option A. In both scenarios, you assume a group member is malicious, and in scenario 2, the DS also colludes with the malicious group member.\n\nCan you describe the attack that could be carried out with Option A, that Option B would prevent? I can't think of any, because both options are the same, except that the degree to which they are standardized varies.",
+          "createdAt": "2026-10-31T19:56:03Z",
+          "updatedAt": "2026-10-31T19:56:03Z"
         }
       ]
     },
@@ -178,7 +192,7 @@
       "labels": [],
       "body": "L450-456 says forward secrecy is \"at epoch granularity\", depends on \"the recipient deleting the previous epoch's leaf private key\", and that applications \"SHOULD advance the epoch frequently\". Under RFC 9420 a leaf's HPKE key changes only when that member updates its own leaf (Update, or a Commit whose path covers it); other members' Commits advance the epoch without touching it. So advancing the epoch doesn't rotate the recipient's key, and there's no per-epoch leaf key to delete.\n\nSuggest saying decryption needs both the recipient's leaf private key and that epoch's exporter-derived PSK, that forward secrecy depends on deleting old epoch secrets and on the recipient updating its own leaf, and replacing \"advance the epoch frequently\" with a SHOULD that recipients update their leaf regularly.\n\nFound reviewing -01 for mimid. Lines are draft-ietf-mls-targeted-messages.md at ae3ab52.\n",
       "createdAt": "2026-10-21T17:23:56Z",
-      "updatedAt": "2026-10-29T00:01:39Z",
+      "updatedAt": "2026-10-31T21:18:43Z",
       "closedAt": null,
       "comments": [
         {
@@ -187,6 +201,13 @@
           "body": "I don't think this is correct. Advancing the epoch while following the deletion schedule from RFC9420 does give us per-epoch forward secrecy. It's not relevant that leaf keys are not rotated every epoch.",
           "createdAt": "2026-10-29T00:01:39Z",
           "updatedAt": "2026-10-29T00:01:39Z"
+        },
+        {
+          "author": "MarkAtwood",
+          "authorAssociation": "NONE",
+          "body": "You're right, I overreached. Targeted messages use HPKE PSK mode with targeted_message_psk from that epoch's exporter, so once the epoch's secrets are deleted, a leaked leaf key doesn't open old messages. Leaf updates are a PCS thing, not FS.\n\nThe current text still gives the wrong reason though: \"deleting the previous epoch's leaf private key\" isn't a thing, since the leaf key isn't per-epoch. I'll cut #15 down to swapping that for deleting the previous epoch's exporter secret, and keep \"advance the epoch frequently\" as is.\n",
+          "createdAt": "2026-10-31T21:18:43Z",
+          "updatedAt": "2026-10-31T21:18:43Z"
         }
       ]
     }
@@ -547,15 +568,15 @@
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
-      "body": "Fixes #12.\n\nThe Forward Secrecy section now says decryption needs both the recipient's leaf private key and that epoch's exported secrets, that a leaf key changes only when its owner updates it, and replaces \"SHOULD advance the epoch frequently\" with a SHOULD that members update their own leaf regularly. The Authentication paragraph's line that the key schedule's FS/PCS guarantees \"extend to targeted messages\" may want softening to match; I left it out of scope.\n",
+      "body": "Fixes #12.\n\nThe Forward Secrecy section says per-epoch forward secrecy depends on \"the recipient deleting the previous epoch's leaf private key\". There is no per-epoch leaf key under RFC 9420; what makes old targeted messages unreadable is deleting the epoch's exporter secret, since `targeted_message_psk` comes from it and HPKE PSK mode needs it to decrypt. This changes that one phrase. The rest of the section is unchanged, per the discussion on #12.",
       "createdAt": "2026-10-21T18:11:16Z",
-      "updatedAt": "2026-10-21T18:11:16Z",
+      "updatedAt": "2026-10-31T21:19:51Z",
       "baseRepository": "mlswg/mls-targeted-messages",
       "baseRefName": "main",
       "baseRefOid": "ecd8d7e19f3bb67d689488a0f8674db78e48f8be",
       "headRepository": "MarkAtwood/mls-targeted-messages",
       "headRefName": "issue-12",
-      "headRefOid": "d1ec70c28304f60f40bb4c4be6892f678c33f43d",
+      "headRefOid": "c6faa1fcde2c59d8c2a7d3c95162a378a3e194a5",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
