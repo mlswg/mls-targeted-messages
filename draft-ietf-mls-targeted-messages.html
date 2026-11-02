@@ -1319,15 +1319,23 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
       </h2>
 <p id="section-3-1">This document defines the <code>mls_targeted_message</code> WireFormat, where the content
 is a <code>TargetedMessage</code>.<a href="#section-3-1" class="pilcrow">¶</a></p>
-<p id="section-3-2">A <code>TargetedMessage</code> is carried in the <code>MLSMessage</code> envelope defined in
-<span><a href="https://rfc-editor.org/rfc/rfc9420#section-6" class="relref">Section 6</a> of [<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>:<a href="#section-3-2" class="pilcrow">¶</a></p>
-<div class="lang-tls sourcecode" id="section-3-3">
+<p id="section-3-2">A member signals support for the <code>mls_targeted_message</code> WireFormat by listing
+  it in the <code>supported_wire_formats</code> extension of its <code>LeafNode</code>, as defined in
+  <span>[<a href="#I-D.ietf-mls-extensions" class="cite xref">I-D.ietf-mls-extensions</a>]</span>. A group requires all of its members to support
+  the WireFormat by listing it in the <code>required_wire_formats</code> extension of its
+  <code>GroupContext</code>. A sender <span class="bcp14">MUST NOT</span> send a <code>TargetedMessage</code> to a member whose
+  <code>LeafNode</code> does not list <code>mls_targeted_message</code> in its <code>supported_wire_formats</code>
+  extension, unless the <code>required_wire_formats</code> extension in the group's
+  <code>GroupContext</code> includes <code>mls_targeted_message</code>.<a href="#section-3-2" class="pilcrow">¶</a></p>
+<p id="section-3-3">A <code>TargetedMessage</code> is carried in the <code>MLSMessage</code> envelope defined in
+<span><a href="https://rfc-editor.org/rfc/rfc9420#section-6" class="relref">Section 6</a> of [<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>:<a href="#section-3-3" class="pilcrow">¶</a></p>
+<div class="lang-tls sourcecode" id="section-3-4">
 <pre>
 case mls_targeted_message:
     TargetedMessage targeted_message;
-</pre><a href="#section-3-3" class="pilcrow">¶</a>
+</pre><a href="#section-3-4" class="pilcrow">¶</a>
 </div>
-<div class="lang-tls sourcecode" id="section-3-4">
+<div class="lang-tls sourcecode" id="section-3-5">
 <pre>
 struct {
   opaque group_id&lt;V&gt;;
@@ -1366,7 +1374,7 @@ struct {
   opaque application_data&lt;V&gt;;
   opaque padding[length_of_padding];
 } TargetedMessageContent;
-</pre><a href="#section-3-4" class="pilcrow">¶</a>
+</pre><a href="#section-3-5" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
@@ -1950,6 +1958,10 @@ to prevent collisions with other uses of the same HPKE keys.<a href="#section-9.
 <a href="#section-10" class="section-number selfRef">10. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
       </h2>
 <dl class="references">
+<dt id="I-D.ietf-mls-extensions">[I-D.ietf-mls-extensions]</dt>
+      <dd>
+<span class="refAuthor">Robert, R.</span>, <span class="refTitle">"The Messaging Layer Security (MLS) Extensions"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-mls-extensions-10</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mls-extensions-10">https://datatracker.ietf.org/doc/html/draft-ietf-mls-extensions-10</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
       <dd>
 <span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
