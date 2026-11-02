@@ -542,7 +542,7 @@ Table of Contents
    private key therefore exposes all targeted messages encrypted to that
    key within the epoch.  Forward secrecy is at epoch granularity only:
    it depends on the key schedule advancing to a new epoch and on the
-   recipient deleting the previous epoch's leaf private key.
+   recipient deleting the previous epoch's exporter secret.
    Applications that require stronger forward secrecy guarantees SHOULD
    advance the epoch frequently.  Accepting targeted messages from past
    epochs requires retaining old key material and further weakens
@@ -631,9 +631,9 @@ Table of Contents
    [I-D.ietf-mls-extensions]
               Robert, R., "The Messaging Layer Security (MLS)
               Extensions", Work in Progress, Internet-Draft, draft-ietf-
-              mls-extensions-10, 6 July 2026,
+              mls-extensions-11, 2 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-mls-
-              extensions-10>.
+              extensions-11>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,

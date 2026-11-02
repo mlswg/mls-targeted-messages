@@ -1802,7 +1802,7 @@ from a secret tree, targeted messages have no per-message key derivation.
 Compromising the recipient's leaf private key therefore exposes all targeted
 messages encrypted to that key within the epoch. Forward secrecy is at epoch
 granularity only: it depends on the key schedule advancing to a new epoch and on
-the recipient deleting the previous epoch's leaf private key. Applications that
+the recipient deleting the previous epoch's exporter secret. Applications that
 require stronger forward secrecy guarantees <span class="bcp14">SHOULD</span> advance the epoch frequently.
 Accepting targeted messages from past epochs requires retaining old key
 material and further weakens forward secrecy, as described in
@@ -1960,7 +1960,7 @@ to prevent collisions with other uses of the same HPKE keys.<a href="#section-9.
 <dl class="references">
 <dt id="I-D.ietf-mls-extensions">[I-D.ietf-mls-extensions]</dt>
       <dd>
-<span class="refAuthor">Robert, R.</span>, <span class="refTitle">"The Messaging Layer Security (MLS) Extensions"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-mls-extensions-10</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mls-extensions-10">https://datatracker.ietf.org/doc/html/draft-ietf-mls-extensions-10</a>&gt;</span>. </dd>
+<span class="refAuthor">Robert, R.</span>, <span class="refTitle">"The Messaging Layer Security (MLS) Extensions"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-mls-extensions-11</span>, <time datetime="2026-11-02" class="refDate">2 November 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mls-extensions-11">https://datatracker.ietf.org/doc/html/draft-ietf-mls-extensions-11</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
       <dd>
