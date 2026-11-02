@@ -4,8 +4,8 @@
 
 Messaging Layer Security                                       R. Robert
 Internet-Draft                                          Phoenix R&D GmbH
-Intended status: Standards Track                         11 October 2026
-Expires: 14 April 2027
+Intended status: Standards Track                         2 November 2026
+Expires: 6 May 2027
 
 
             Messaging Layer Security (MLS) Targeted Messages
@@ -54,7 +54,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 April 2027.
+   This Internet-Draft will expire on 6 May 2027.
 
 Copyright Notice
 
@@ -190,8 +190,9 @@ Table of Contents
    suite of the MLS group in which the message is sent (Section 5.1 of
    [RFC9420]).  In particular, the group's cipher suite determines:
 
-   *  the KEM, KDF, and AEAD used for the HPKE encryption of the message
-      content (Section 6.2),
+   *  the Key Encapsulation Mechanism (KEM), Key Derivation Function
+      (KDF), and Authenticated Encryption with Associated Data (AEAD)
+      used for the HPKE encryption of the message content (Section 6.2),
 
    *  the KDF underlying the MLS-Exporter and ExpandWithLabel
       derivations (Section 5 and Section 6.3), including the value
@@ -280,7 +281,7 @@ Table of Contents
    The TargetedMessageContent struct is serialized and encrypted using
    HPKE.
 
-   The HPKE context is a TargetedMessageContext struct with the
+   The HPKE info is a serialized TargetedMessageContext struct with the
    following content:
 
    struct {
@@ -301,10 +302,10 @@ Table of Contents
    recipient and sender leaf indices.  The message is bound to the group
    state through the targeted_message_psk, as described in Section 8.2.
 
-   The TargetedMessageContext struct is serialized as hpke_context and
-   is used by both the sender and the recipient.  The recipient's leaf
-   node HPKE encryption key from the ratchet tree of the epoch specified
-   in the TargetedMessage is used as the recipient's public key
+   The TargetedMessageContext struct is serialized as hpke_info and is
+   used by both the sender and the recipient.  The recipient's leaf node
+   HPKE encryption key from the ratchet tree of the epoch specified in
+   the TargetedMessage is used as the recipient's public key
    recipient_node_public_key for the HPKE encryption.
 
    The content of the TargetedMessage.authenticated_data field is used
@@ -312,7 +313,7 @@ Table of Contents
    single-shot SealPSK API:
 
    (kem_output, ciphertext) = SealPSK(recipient_node_public_key,
-                                      hpke_context,
+                                      hpke_info,
                                       authenticated_data,
                                       targeted_message_content,
                                       targeted_message_psk,
@@ -346,7 +347,7 @@ Table of Contents
 
    targeted_message_content = OpenPSK(kem_output,
                      recipient_node_private_key,
-                     hpke_context,
+                     hpke_info,
                      authenticated_data,
                      ciphertext,
                      targeted_message_psk,
@@ -357,16 +358,15 @@ Table of Contents
 
 6.3.  Sender Data Encryption
 
-   TargetedMessageSenderAuthData is encrypted similarly to MLSSenderData
-   as described in Section 6.3.2 of [RFC9420].  It contains the sender's
-   leaf index, the signature over TargetedMessageTBS, and the Key
-   Encapsulation Mechanism (KEM) output of the HPKE encryption.
+   TargetedMessageSenderAuthData is encrypted similarly to SenderData as
+   described in Section 6.3.2 of [RFC9420].  It contains the sender's
+   leaf index, the signature over TargetedMessageTBS, and the KEM output
+   of the HPKE encryption.
 
-   The key and nonce provided to the Authenticated Encryption with
-   Associated Data (AEAD) are computed as the Key Derivation Function
-   (KDF) of the first KDF.Nh bytes of the ciphertext generated in
-   Section 6.2.  If the length of the ciphertext is less than KDF.Nh,
-   the whole ciphertext is used.  As with the targeted_message_psk, the
+   The key and nonce provided to the AEAD are computed as the KDF of the
+   first KDF.Nh bytes of the ciphertext generated in Section 6.2.  If
+   the length of the ciphertext is less than KDF.Nh, the whole
+   ciphertext is used.  As with the targeted_message_psk, the
    sender_auth_data_secret is exported from the key schedule of the
    epoch specified in the TargetedMessage.  In pseudocode, the key and
    nonce are derived as:
@@ -443,9 +443,9 @@ Table of Contents
    *  the leaf nodes of the ratchet tree, in order to look up the
       sender's leaf node.
 
-   Support for past epochs is OPTIONAL, accepting only the current epoch
-   is the most conservative behavior.  Retaining key material from past
-   epochs weakens the Forward Secrecy properties described in
+   Support for past epochs is OPTIONAL.  Accepting only the current
+   epoch is the most conservative behavior.  Retaining key material from
+   past epochs weakens the forward secrecy properties described in
    Section 8.5: targeted messages for an epoch remain decryptable for as
    long as that epoch's key material exists.  Applications that accept
    messages from past epochs SHOULD bound the number of retained epochs
@@ -472,8 +472,8 @@ Table of Contents
    entirely on the signature.
 
    Because the PSK is derived from the MLS key schedule, it is only
-   valid for a specific group and epoch.  The Forward Secrecy and Post-
-   Compromise Security guarantees of the group key schedule therefore
+   valid for a specific group and epoch.  The forward secrecy and post-
+   compromise security guarantees of the group key schedule therefore
    extend to targeted messages.  The PSK also ensures that an attacker
    needs access to the private group state in addition to the HPKE and
    signature private keys, improving confidentiality guarantees against
@@ -547,14 +547,13 @@ Table of Contents
    outside the group, but not from other group members who obtain the
    encrypted message.
 
-   The encryption mechanism is the same as the one used for
-   MLSSenderData in Section 6.3.2 of [RFC9420], and the analysis of
-   Section 16.3 of [RFC9420] applies equally to targeted messages.  In
-   particular, using the same sender_auth_data_secret with the same
-   ciphertext sample more than once would reuse an AEAD key and nonce
-   pair; with the AEAD algorithms of the cipher suites defined in
-   [RFC9420], the probability of two ciphertext samples colliding is no
-   more than 2^-128.
+   The encryption mechanism is the same as the one used for SenderData
+   in Section 6.3.2 of [RFC9420], and the analysis of Section 16.3 of
+   [RFC9420] applies equally to targeted messages.  In particular, using
+   the same sender_auth_data_secret with the same ciphertext sample more
+   than once would reuse an AEAD key and nonce pair; with the AEAD
+   algorithms of the cipher suites defined in [RFC9420], the probability
+   of two ciphertext samples colliding is no more than 2^-128.
 
 8.7.  Replay Protection
 
@@ -645,7 +644,7 @@ Appendix A.  Test Vectors
    inputs alone; sender implementations can be tested by round-tripping
    against a receiver implementation.
 
-   All vectors use the MTI MLS cipher suite
+   All vectors use the mandatory-to-implement MLS cipher suite
    MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519.  All values except
    cipher_suite, epoch, the leaf indices, and padding_length (all
    decimal) are hex-encoded.

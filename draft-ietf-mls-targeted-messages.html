@@ -26,11 +26,11 @@ authentication, and binding to the group state.
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.12.2
+    platformdirs 4.13.4
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.9.1
+    wcwidth 0.9.2
 -->
 <link href="draft-ietf-mls-targeted-messages.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1046,11 +1046,11 @@ svg {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">Messaging Layer Security (MLS) Targeted </td>
-<td class="right">October 2026</td>
+<td class="right">November 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Robert</td>
-<td class="center">Expires 14 April 2027</td>
+<td class="center">Expires 6 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1063,12 +1063,12 @@ svg {
 <dd class="internet-draft">draft-ietf-mls-targeted-messages-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-11" class="published">11 October 2026</time>
+<time datetime="2026-11-02" class="published">2 November 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-14">14 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-06">6 May 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1123,7 +1123,7 @@ authentication, and binding to the group state.<a href="#section-abstract-1" cla
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 14 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 6 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1380,7 +1380,9 @@ the MLS group in which the message is sent (<span><a href="https://rfc-editor.or
 particular, the group's cipher suite determines:<a href="#section-4-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-4-2.1">
-          <p id="section-4-2.1.1">the KEM, KDF, and AEAD used for the HPKE encryption of the message content
+          <p id="section-4-2.1.1">the Key Encapsulation Mechanism (KEM), Key Derivation Function (KDF), and
+Authenticated Encryption with Associated Data (AEAD) used for the HPKE
+encryption of the message content
 (<a href="#application-data-encryption" class="auto internal xref">Section 6.2</a>),<a href="#section-4-2.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-4-2.2">
@@ -1498,7 +1500,7 @@ cannot be used as a covert channel.<a href="#section-6.1-1" class="pilcrow">¶</
 <a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-application-data-encryption" class="section-name selfRef">Application Data Encryption</a>
         </h3>
 <p id="section-6.2-1">The <code>TargetedMessageContent</code> struct is serialized and encrypted using HPKE.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
-<p id="section-6.2-2">The HPKE context is a <code>TargetedMessageContext</code> struct with the
+<p id="section-6.2-2">The HPKE <code>info</code> is a serialized <code>TargetedMessageContext</code> struct with the
 following content:<a href="#section-6.2-2" class="pilcrow">¶</a></p>
 <div class="lang-tls sourcecode" id="section-6.2-3">
 <pre>
@@ -1520,7 +1522,7 @@ rather than opaque, and the encryption uses PSK mode rather than Base mode.
 The <code>context</code> field binds the encryption to the recipient and sender leaf
 indices. The message is bound to the group state through the
 <code>targeted_message_psk</code>, as described in <a href="#group-state-binding" class="auto internal xref">Section 8.2</a>.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
-<p id="section-6.2-5">The <code>TargetedMessageContext</code> struct is serialized as <code>hpke_context</code> and is used
+<p id="section-6.2-5">The <code>TargetedMessageContext</code> struct is serialized as <code>hpke_info</code> and is used
 by both the sender and the recipient. The recipient's leaf node HPKE encryption
 key from the ratchet tree of the epoch specified in the <code>TargetedMessage</code> is
 used as the recipient's public key <code>recipient_node_public_key</code> for the HPKE
@@ -1531,7 +1533,7 @@ encryption.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
 <div class="lang-tls sourcecode" id="section-6.2-7">
 <pre>
 (kem_output, ciphertext) = SealPSK(recipient_node_public_key,
-                                   hpke_context,
+                                   hpke_info,
                                    authenticated_data,
                                    targeted_message_content,
                                    targeted_message_psk,
@@ -1570,7 +1572,7 @@ struct:<a href="#section-6.2-11" class="pilcrow">¶</a></p>
 <pre>
 targeted_message_content = OpenPSK(kem_output,
                   recipient_node_private_key,
-                  hpke_context,
+                  hpke_info,
                   authenticated_data,
                   ciphertext,
                   targeted_message_psk,
@@ -1585,12 +1587,11 @@ targeted_message_content = OpenPSK(kem_output,
         <h3 id="name-sender-data-encryption">
 <a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-sender-data-encryption" class="section-name selfRef">Sender Data Encryption</a>
         </h3>
-<p id="section-6.3-1"><code>TargetedMessageSenderAuthData</code> is encrypted similarly to <code>MLSSenderData</code> as
+<p id="section-6.3-1"><code>TargetedMessageSenderAuthData</code> is encrypted similarly to <code>SenderData</code> as
 described in <span><a href="https://rfc-editor.org/rfc/rfc9420#section-6.3.2" class="relref">Section 6.3.2</a> of [<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>. It contains the sender's leaf
-index, the signature over <code>TargetedMessageTBS</code>, and the Key Encapsulation
-Mechanism (KEM) output of the HPKE encryption.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
-<p id="section-6.3-2">The key and nonce provided to the Authenticated Encryption with Associated
-Data (AEAD) are computed as the Key Derivation Function (KDF) of the first
+index, the signature over <code>TargetedMessageTBS</code>, and the KEM output of the HPKE
+encryption.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
+<p id="section-6.3-2">The key and nonce provided to the AEAD are computed as the KDF of the first
 KDF.Nh bytes of the <code>ciphertext</code> generated in <a href="#application-data-encryption" class="auto internal xref">Section 6.2</a>.
 If the length of the ciphertext is less than KDF.Nh, the whole ciphertext is
 used. As with the <code>targeted_message_psk</code>, the <code>sender_auth_data_secret</code> is
@@ -1690,9 +1691,9 @@ retain the following key material and state for that epoch:<a href="#section-7.1
 node.<a href="#section-7.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-7.1-3">Support for past epochs is <span class="bcp14">OPTIONAL</span>, accepting only the current epoch is the
+<p id="section-7.1-3">Support for past epochs is <span class="bcp14">OPTIONAL</span>. Accepting only the current epoch is the
 most conservative behavior. Retaining key material from past epochs weakens
-the Forward Secrecy properties described in <a href="#forward-secrecy" class="auto internal xref">Section 8.5</a>: targeted
+the forward secrecy properties described in <a href="#forward-secrecy" class="auto internal xref">Section 8.5</a>: targeted
 messages for an epoch remain decryptable for as long as that epoch's key
 material exists. Applications that accept messages from past epochs <span class="bcp14">SHOULD</span>
 bound the number of retained epochs and <span class="bcp14">SHOULD</span> delete the corresponding key
@@ -1723,7 +1724,7 @@ authentication, ensuring that an entity that does not know the PSK cannot forge
 a valid ciphertext. It does not, however, authenticate which PSK holder
 produced the message. Sender identity relies entirely on the signature.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
 <p id="section-8.1-2">Because the PSK is derived from the MLS key schedule, it is only valid for a
-specific group and epoch. The Forward Secrecy and Post-Compromise Security
+specific group and epoch. The forward secrecy and post-compromise security
 guarantees of the group key schedule therefore extend to targeted messages. The
 PSK also ensures that an attacker needs access to the private group state in
 addition to the HPKE and signature private keys, improving confidentiality
@@ -1811,7 +1812,7 @@ material and further weakens forward secrecy, as described in
 identity is therefore protected from the Delivery Service and from entities
 outside the group, but not from other group members who obtain the encrypted
 message.<a href="#section-8.6-1" class="pilcrow">¶</a></p>
-<p id="section-8.6-2">The encryption mechanism is the same as the one used for <code>MLSSenderData</code> in
+<p id="section-8.6-2">The encryption mechanism is the same as the one used for <code>SenderData</code> in
 <span><a href="https://rfc-editor.org/rfc/rfc9420#section-6.3.2" class="relref">Section 6.3.2</a> of [<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>, and the analysis of <span><a href="https://rfc-editor.org/rfc/rfc9420#section-16.3" class="relref">Section 16.3</a> of [<a href="#RFC9420" class="cite xref">RFC9420</a>]</span> applies equally to targeted messages. In particular, using the
 same <code>sender_auth_data_secret</code> with the same ciphertext sample more than once
 would reuse an AEAD key and nonce pair; with the AEAD algorithms of the
@@ -1978,7 +1979,7 @@ to prevent collisions with other uses of the same HPKE keys.<a href="#section-9.
 sender-side operations are not reproducible from the inputs alone; sender
 implementations can be tested by round-tripping against a receiver
 implementation.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
-<p id="appendix-A-2">All vectors use the MTI MLS cipher suite
+<p id="appendix-A-2">All vectors use the mandatory-to-implement MLS cipher suite
 MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519. All values except <code>cipher_suite</code>,
 <code>epoch</code>, the leaf indices, and <code>padding_length</code> (all decimal) are hex-encoded.<a href="#appendix-A-2" class="pilcrow">¶</a></p>
 <p id="appendix-A-3">Each vector provides the group state held by the recipient:<a href="#appendix-A-3" class="pilcrow">¶</a></p>
