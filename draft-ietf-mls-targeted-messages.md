@@ -538,7 +538,8 @@ implementation.
 
 All vectors use the MTI MLS cipher suite
 MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519. All values except `cipher_suite`,
-`epoch`, the leaf indices, and `padding_length` (all decimal) are hex-encoded.
+`epoch`, the leaf indices, and `padding_length` (all decimal), `valid` (a
+boolean), and `failure` (a name) are hex-encoded.
 
 Each vector provides the group state held by the recipient:
 
@@ -560,11 +561,27 @@ as well as the message and its expected plaintext:
 - `application_data`: the expected application data after decryption.
 - `padding_length`: the expected length of the zero-filled `padding` field of
   the decrypted `TargetedMessageContent`.
+- `valid`: `true` if all steps of {{recipient-validation}} succeed, `false` if
+  the message is to be rejected. A vector without this field is valid.
+- `failure`: for a vector with `valid: false`, the first step of
+  {{recipient-validation}} that fails, as one of:
+  `decode` (the message does not parse), `group_id`, `epoch`,
+  `recipient_leaf_index`, `sender_data` (decrypting or decoding
+  `encrypted_sender_auth_data`), `sender_leaf_index`, `signature`,
+  `ciphertext` (decrypting `ciphertext`), or `padding`.
+
+For a vector with `valid: false`, `application_data` is empty and
+`padding_length` is 0.
+
+The ratchet tree of the epoch has exactly two non-blank leaves, at
+`sender_leaf_index` and `recipient_leaf_index`. The recipient retains no
+key material for past epochs.
 
 A verifier performs the steps of {{recipient-validation}} on
-`targeted_message` and checks that all validation steps succeed, that the
-decrypted application data matches `application_data`, and that the padding
-has length `padding_length`.
+`targeted_message`. For a valid vector, it checks that all validation steps
+succeed, that the decrypted application data matches `application_data`, and
+that the padding has length `padding_length`. For an invalid vector, it checks
+that the message is rejected at the step named by `failure`.
 
 ## Vector 1
 
@@ -669,6 +686,152 @@ targeted_message:
   52a77cd85ef344d1134db24fbe38
 ~~~
 
+## Vector 4
+
+Vector 4 has empty `application_data` and no padding, so its `ciphertext` is 17
+bytes, shorter than KDF.Nh, and the whole `ciphertext` is the sample used in
+{{sender-data-encryption}}.
+
+~~~
+valid: true
+cipher_suite: 1
+epoch: 0
+sender_leaf_index: 0
+recipient_leaf_index: 1
+padding_length: 0
+group_id: 903e64ae19f9e8705b1197e172e6c565
+exporter_secret:
+  fb55c088454fd038ffcea59e5230a3e7db2173bcf39abe19b445952d656039eb
+sender_leaf_node:
+  207ce5c3e161e456926e6708e9f36bd0b9fdbf1046b3ddffbd391b0d744d6e16
+  3f20da923f2a67d26cec64ee34f1e4af7eb2c67699345b5c1e67fdd37c2ba76f
+  0aa700010673656e646572020001020001000002000101000000006ae8b00900
+  0000006b577c190040407f4b358f2f6034052b5279ec15e26b355f28047a67d3
+  b5f0ffc3f251efa2b90f106751b5316a244869f0c712bc8ceb1f67020ac86738
+  cbd1ca66566149ab8100
+recipient_encryption_priv:
+  3c26fe01f4ea565b4403337852ba6dfa885baafd2932b022cb09542f23622250
+authenticated_data:
+application_data:
+targeted_message:
+  0001000610903e64ae19f9e8705b1197e172e6c5650000000000000000000000
+  01004077e46df1fab402176140976b189a116f8e87153db87c6b7bfd8614c5a8
+  24f5cf5ab01c555d3a033d286510c4c0b9bd65f0a8da09fe2d7e3b268dff2059
+  042f079c1e625c2f799a489fb181e5e8763061deee008684b3c9b563d36f4ad4
+  cd34a0077ec1c607a9c29634df3d84b42325d123e01202e51b632211bf124cca
+  9a31349be301dd8210bfa80614
+~~~
+
+## Vector 5
+
+Vector 5 has a `ciphertext` of exactly KDF.Nh bytes.
+
+~~~
+valid: true
+cipher_suite: 1
+epoch: 1
+sender_leaf_index: 1
+recipient_leaf_index: 0
+padding_length: 0
+group_id: 53611d3a730ec0f49f3871118201d235
+exporter_secret:
+  e0463c9e6c69375d3389a5a9a78db3cd0c8a54fca49d609e80f76cb0ca6a9917
+sender_leaf_node:
+  20a818c8268a485e498733aaef9196c4305960d214c57e3348aa0aceced474bd
+  5d20386f23018c223480b071ea61608420a96b404c79af28e9d1992c0425e72b
+  156f00010673656e646572020001020001000002000101000000006ae8b00900
+  0000006b577c1900404058a2a8d23886444d40bbde549e49e699e7a38859b581
+  5a1519225443618d46f37cac0e0915d358321fe9c0599112114362f96ac377ea
+  953151b8c467c0ccda0d
+recipient_encryption_priv:
+  a7b776c804ec3fe07541f8b1a5a2a493426b2d957321e1b04cd58af3eac0ec35
+authenticated_data:
+application_data: 000102030405060708090a0b0c0d0e
+targeted_message:
+  000100061053611d3a730ec0f49f3871118201d2350000000000000001000000
+  00004077088895e685dbe1070524c7fd672a18566c82f7f69b13f23eaaea7290
+  5a1f9604465b58533af7ce59649edb782108d2644cf798b18cdfdb0e024740ae
+  856b1716b4f502f334c9cc6101c08fb89b18de564b0f725b1fcf93c4292b78a7
+  c9a756bd9cb468df2d662d4d4f05ebaeae86447aeba8fb40a8ae582080cb7b99
+  c8a2a9183d4d4b1a9103356d78d881d98aa6fcfaefa0403a661932d5
+~~~
+
+## Vector 6
+
+In Vector 6, `encrypted_sender_auth_data` decrypts correctly but names leaf 4,
+which is blank.
+
+~~~
+valid: false
+failure: sender_leaf_index
+cipher_suite: 1
+epoch: 7
+sender_leaf_index: 3
+recipient_leaf_index: 5
+padding_length: 0
+group_id: 291bc66f1449ccdbf114dd695ceb48c0
+exporter_secret:
+  74b2c549ad4de07d41acb30dbf779913155374c9b64370c6f688fcf500517316
+sender_leaf_node:
+  207f45ac839d75b23032e2d3b351d1bd181eebdd2e02b9bf12aec7731b371b51
+  6c200a82529548fdf638390767ad6eeca9b38aed9dbe688f80055e92ab653a60
+  192f00010673656e646572020001020001000002000101000000006ae8b00900
+  0000006b577c19004040293864f86d2e6c78dc2c220a8c8b20046978ff3d74df
+  dc609a5b23a6382a836a26533db6549455d456c32ed8538a3237275c2924c96a
+  051184c61e74e724760e
+recipient_encryption_priv:
+  f15cf5e9ff7d6d85f5d1668b3a13249b469f722051838113d9dc0d553a2d3b06
+authenticated_data: 726571756573742d69643d3432
+application_data:
+targeted_message:
+  0001000610291bc66f1449ccdbf114dd695ceb48c00000000000000007000000
+  050d726571756573742d69643d3432407730e9c0df401667c587bac3e7793e87
+  7de747553ec8ca7624668452778e315c739554c424e4e6f2d97382d1fc2389c2
+  fd2fdcb8ff9b2786ff3c82ce0eead58242019bc080312f7d2b083c69b9e5e56e
+  8bcf26f549fee63fd2597dba23a34405177b5aee055f980c010c4b2ac0ae7e24
+  366ab9196a745c2b3959fabc18d987d30e20fa3f457520ec76cf7ed711b5b2ee
+  3e39e711744d3e49d0a7939b14647bb2981818d925601c9c76c79fe29befe749
+  a565
+~~~
+
+## Vector 7
+
+Vector 7 is correctly signed and decrypts, but the third of its four padding
+bytes is 0x01.
+
+~~~
+valid: false
+failure: padding
+cipher_suite: 1
+epoch: 7
+sender_leaf_index: 3
+recipient_leaf_index: 5
+padding_length: 0
+group_id: 5a3630b342a025782103b19ad7f10e00
+exporter_secret:
+  ccfbdd96a069073057844adfeca9f154e901fcef9e57e35a30aa01f51e2c3826
+sender_leaf_node:
+  20978e8b48b57ba176ea3104db0729fc53b3514636dd47a12e4108a0e02a6161
+  462025bf6ce0ca23a76faa75c6851622e9b07c07a548d1da8d3b5cbff2fe4b54
+  80ce00010673656e646572020001020001000002000101000000006ae8b00900
+  0000006b577c190040402116c459ee95961a3809d1d1e63f5db4def0bee3adb4
+  8a058080f1d858ff85f642ae66ba6133588404d2127c423cd0e2009212d03804
+  1d66a19ab748f83a6f03
+recipient_encryption_priv:
+  3fe8a69e253749253417d7a8c107e97a71904c57e95c05da0248d573cdd69357
+authenticated_data: 726571756573742d69643d3432
+application_data:
+targeted_message:
+  00010006105a3630b342a025782103b19ad7f10e000000000000000007000000
+  050d726571756573742d69643d34324077828ea9b0625cae93e59eb5255ec1a1
+  39f3d3fc454849d6a8702cf9160b777a0b8f35ba19cbe8aa9fe9a87486f77b73
+  09ca0c9c356496094db0e8de899fccb66747499ed727a27d04baa36122f8308a
+  1520fffe7a0bb082e85d9cb76bac9ee3cbab4963060338a54e29a97ccaba3b1f
+  80bc8ecbfa0fe0563d63820d6f6a920014c736227475c7155eeb07df791ada0d
+  3777681c36b06b36e4c146898b81296a498022ccecafc5a33c5b75b61fb7ae09
+  d2fb1b77c917
+~~~
+
 # Change Log
 {:removeInRFC="true"}
 
@@ -684,6 +847,9 @@ draft-ietf-mls-targeted-messages-02:
   depends on the `kem_output`.
 - Added a security consideration describing how each message field is bound.
 - Updated the test vectors.
+- Added `valid` and `failure` fields to the test vector format, and test
+  vectors for a ciphertext shorter than KDF.Nh, a ciphertext of exactly
+  KDF.Nh bytes, a blank sender leaf, and non-zero padding.
 
 draft-ietf-mls-targeted-messages-01:
 
