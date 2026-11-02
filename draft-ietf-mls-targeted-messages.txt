@@ -817,6 +817,23 @@ Appendix B.  Change Log
 
    *  Updated the test vectors.
 
+   *  Specified how members signal support for the mls_targeted_message
+      WireFormat with the supported_wire_formats and
+      required_wire_formats extensions, and when a sender is allowed to
+      send a TargetedMessage to a member.  This adds a normative
+      reference to draft-ietf-mls-extensions.
+
+   *  Corrected the Forward Secrecy security consideration.  Forward
+      secrecy depends on the recipient deleting the previous epoch's
+      exporter secret, not its leaf private key.
+
+   *  Editorial fixes: described the TargetedMessageContext struct as
+      the HPKE info parameter and renamed hpke_context to hpke_info,
+      used the RFC 9420 name SenderData instead of MLSSenderData,
+      expanded the KEM, KDF, and AEAD abbreviations at first use,
+      spelled out MTI, and lowercased "forward secrecy" and "post-
+      compromise security".
+
    draft-ietf-mls-targeted-messages-01:
 
    *  Changed the intended status from Informational to Standards Track.

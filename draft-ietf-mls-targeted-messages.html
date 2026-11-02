@@ -2186,6 +2186,24 @@ depends on the <code>kem_output</code>.<a href="#appendix-B-3.3.1" class="pilcro
         <li class="normal" id="appendix-B-3.5">
           <p id="appendix-B-3.5.1">Updated the test vectors.<a href="#appendix-B-3.5.1" class="pilcrow">¶</a></p>
 </li>
+        <li class="normal" id="appendix-B-3.6">
+          <p id="appendix-B-3.6.1">Specified how members signal support for the <code>mls_targeted_message</code>
+WireFormat with the <code>supported_wire_formats</code> and <code>required_wire_formats</code>
+extensions, and when a sender is allowed to send a <code>TargetedMessage</code> to a
+member. This adds a normative reference to draft-ietf-mls-extensions.<a href="#appendix-B-3.6.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-B-3.7">
+          <p id="appendix-B-3.7.1">Corrected the Forward Secrecy security consideration. Forward secrecy depends
+on the recipient deleting the previous epoch's exporter secret, not its leaf
+private key.<a href="#appendix-B-3.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-B-3.8">
+          <p id="appendix-B-3.8.1">Editorial fixes: described the <code>TargetedMessageContext</code> struct as the HPKE
+<code>info</code> parameter and renamed <code>hpke_context</code> to <code>hpke_info</code>, used the RFC 9420
+name <code>SenderData</code> instead of <code>MLSSenderData</code>, expanded the KEM, KDF, and AEAD
+abbreviations at first use, spelled out MTI, and lowercased "forward
+secrecy" and "post-compromise security".<a href="#appendix-B-3.8.1" class="pilcrow">¶</a></p>
+</li>
       </ul>
 <p id="appendix-B-4">draft-ietf-mls-targeted-messages-01:<a href="#appendix-B-4" class="pilcrow">¶</a></p>
 <ul class="normal">
