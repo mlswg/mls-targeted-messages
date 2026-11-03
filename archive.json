@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-01T04:54:52.038598+00:00",
+  "timestamp": "2026-11-03T05:44:30.363977+00:00",
   "repo": "mlswg/mls-targeted-messages",
   "labels": [
     {
@@ -169,15 +169,15 @@
       "id": "I_kwDOPFs6J88AAAABY46nsA",
       "title": "Say how support for mls_targeted_message is signalled",
       "url": "https://github.com/mlswg/mls-targeted-messages/issues/11",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "MarkAtwood",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "The draft defines the `mls_targeted_message` wire format (L68) but not how a sender knows a recipient can process it. extensions-10 \u00a75 provides `supported_wire_formats` and `required_wire_formats`, and its changelog says the old targeted_messages_capability is \"now signaled using support_wire_formats and required_wire_formats\", but this draft doesn't reference extensions-10.\n\nSuggest a normative reference to draft-ietf-mls-extensions and a rule: a sender MUST NOT send a TargetedMessage to a member whose LeafNode doesn't list `mls_targeted_message` in `supported_wire_formats`, unless the GroupContext's `required_wire_formats` includes it.\n\nFound reviewing -01 for mimid. Lines are draft-ietf-mls-targeted-messages.md at ae3ab52.\n",
       "createdAt": "2026-10-21T17:22:56Z",
-      "updatedAt": "2026-10-21T17:22:56Z",
-      "closedAt": null,
+      "updatedAt": "2026-11-02T19:11:38Z",
+      "closedAt": "2026-11-02T19:11:38Z",
       "comments": []
     },
     {
@@ -185,15 +185,15 @@
       "id": "I_kwDOPFs6J88AAAABY47jug",
       "title": "Forward Secrecy: leaf keys don't rotate per epoch",
       "url": "https://github.com/mlswg/mls-targeted-messages/issues/12",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "MarkAtwood",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "L450-456 says forward secrecy is \"at epoch granularity\", depends on \"the recipient deleting the previous epoch's leaf private key\", and that applications \"SHOULD advance the epoch frequently\". Under RFC 9420 a leaf's HPKE key changes only when that member updates its own leaf (Update, or a Commit whose path covers it); other members' Commits advance the epoch without touching it. So advancing the epoch doesn't rotate the recipient's key, and there's no per-epoch leaf key to delete.\n\nSuggest saying decryption needs both the recipient's leaf private key and that epoch's exporter-derived PSK, that forward secrecy depends on deleting old epoch secrets and on the recipient updating its own leaf, and replacing \"advance the epoch frequently\" with a SHOULD that recipients update their leaf regularly.\n\nFound reviewing -01 for mimid. Lines are draft-ietf-mls-targeted-messages.md at ae3ab52.\n",
       "createdAt": "2026-10-21T17:23:56Z",
-      "updatedAt": "2026-10-31T21:18:43Z",
-      "closedAt": null,
+      "updatedAt": "2026-11-02T22:26:38Z",
+      "closedAt": "2026-11-02T22:26:38Z",
       "comments": [
         {
           "author": "raphaelrobert",
@@ -204,10 +204,74 @@
         },
         {
           "author": "MarkAtwood",
-          "authorAssociation": "NONE",
+          "authorAssociation": "CONTRIBUTOR",
           "body": "You're right, I overreached. Targeted messages use HPKE PSK mode with targeted_message_psk from that epoch's exporter, so once the epoch's secrets are deleted, a leaked leaf key doesn't open old messages. Leaf updates are a PCS thing, not FS.\n\nThe current text still gives the wrong reason though: \"deleting the previous epoch's leaf private key\" isn't a thing, since the leaf key isn't per-epoch. I'll cut #15 down to swapping that for deleting the previous epoch's exporter secret, and keep \"advance the epoch frequently\" as is.\n",
           "createdAt": "2026-10-31T21:18:43Z",
           "updatedAt": "2026-10-31T21:18:43Z"
+        }
+      ]
+    },
+    {
+      "number": 18,
+      "id": "I_kwDOPFs6J88AAAABb46AYw",
+      "title": "Does Safe AAD framing apply to TargetedMessage.authenticated_data?",
+      "url": "https://github.com/mlswg/mls-targeted-messages/issues/18",
+      "state": "OPEN",
+      "author": "MarkAtwood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "mls-extensions-10 \u00a75 says that if the `safe_aad` component is present in the GroupContext's `app_data_dictionary` (even with an empty list), \"the authenticated_data field always starts with the SafeAAD struct\". \u00a74.9 introduces that framing in terms of PublicMessage and PrivateMessage. `TargetedMessage` has its own `authenticated_data`, and this draft doesn't say whether the rule applies to it.\n\nThis affects interop. In a group with `safe_aad`, one implementation may parse a received TargetedMessage's `authenticated_data` as SafeAAD while another treats it as opaque bytes. It also affects Replay Protection, which says applications SHOULD put a unique nonce in `authenticated_data`. Under Safe AAD a raw nonce isn't valid framing; it would have to go in a `SafeAADItem` under some component ID.\n\nTwo options:\n\n1. **Apply it.** When the GroupContext includes `safe_aad`, `TargetedMessage.authenticated_data` is a `SafeAAD` struct, as for PrivateMessage. Replay Protection then says the nonce goes in an `aad_items` entry of an application component.\n2. **Exempt it.** Say Safe AAD framing doesn't apply to TargetedMessage and its `authenticated_data` is always opaque.\n\nOption 1 matches extensions \u00a75's unconditional wording, but either works if the draft says which.\n",
+      "createdAt": "2026-11-02T16:27:31Z",
+      "updatedAt": "2026-11-02T19:29:58Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "raphaelrobert",
+          "authorAssociation": "MEMBER",
+          "body": "Option 1 sounds like the right one to me",
+          "createdAt": "2026-11-02T19:29:58Z",
+          "updatedAt": "2026-11-02T19:29:58Z"
+        }
+      ]
+    },
+    {
+      "number": 19,
+      "id": "I_kwDOPFs6J88AAAABb46B4A",
+      "title": "Test vectors: short-ciphertext sample and rejection cases",
+      "url": "https://github.com/mlswg/mls-targeted-messages/issues/19",
+      "state": "OPEN",
+      "author": "MarkAtwood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "All three test vectors are success cases, and none has a ciphertext shorter than KDF.Nh, so two receiver paths are untested:\n\n1. **Short ciphertext.** Sender Data Encryption says that if the ciphertext is shorter than KDF.Nh, the whole ciphertext is the sample. With the MTI suite (Nh = 32, 16-byte tag) the vector ciphertexts are 55, 104 and 145 bytes. Empty `application_data` with zero padding gives a 17-byte ciphertext, which takes this branch. A receiver that always slices `ciphertext[0..Nh-1]` passes all three vectors, then fails or panics on short messages.\n2. **Rejection.** Recipient Validation lists checks whose failure MUST reject the message, but no vector exercises any of them. Useful cases: a `recipient_leaf_index` that isn't the recipient's, a bad signature, a `ciphertext_hash` mismatch, nonzero padding, and an epoch that isn't accepted. The vector format would need an expected-outcome field for these, e.g. `valid: false`.\n\nThese need to be generated by an implementation.\n",
+      "createdAt": "2026-11-02T16:27:33Z",
+      "updatedAt": "2026-11-02T16:27:33Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 20,
+      "id": "I_kwDOPFs6J88AAAABb5Rs2w",
+      "title": "Recipient Validation: no step for plaintext that doesn't decode",
+      "url": "https://github.com/mlswg/mls-targeted-messages/issues/20",
+      "state": "OPEN",
+      "author": "MarkAtwood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Recipient Validation decrypts `ciphertext` and then checks the padding, but no step covers a plaintext that decrypts yet doesn't decode as `TargetedMessageContent`, for example an `application_data` length prefix that runs past the end of the plaintext. Padding says the receiver finds the padding \"by first decoding the application data\", so decoding is implied, but the failure isn't stated, and \"rejected as malformed\" there covers only non-zero padding bytes.\n\nOpenMLS and an independent Python implementation (written to cross-check the vectors for #19) both reject such a plaintext, and both report it under the padding check; OpenMLS returns one error for both cases. That works, but by accident rather than by the text.\n\nOnly an authenticated sender can produce such a message, since the signature is verified before decryption, so this is about consistent receiver behavior, not security.\n\nSuggested fix: make the last step \"Decode the plaintext as `TargetedMessageContent` and verify that the `padding` field contains only zero bytes\", or add a decode step before the padding check.\n",
+      "createdAt": "2026-11-02T16:51:10Z",
+      "updatedAt": "2026-11-02T20:42:55Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "raphaelrobert",
+          "authorAssociation": "MEMBER",
+          "body": "This looks valid",
+          "createdAt": "2026-11-02T20:42:55Z",
+          "updatedAt": "2026-11-02T20:42:55Z"
         }
       ]
     }
@@ -463,24 +527,26 @@
       "id": "PR_kwDOPFs6J88AAAABJ2eSnA",
       "title": "Editorial fixes from an implementation review",
       "url": "https://github.com/mlswg/mls-targeted-messages/pull/13",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "MarkAtwood",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Editorial fixes found reviewing -01. No wire format or requirement changes.\n\n- Expand KEM, KDF and AEAD at first use (\u00a74.2), and use the short forms later in \u00a76.3.\n- The `TargetedMessageContext` passed to SealPSK/OpenPSK is HPKE's `info` parameter (RFC 9180), so call it that; `hpke_context` \u2192 `hpke_info` in the prose and pseudocode. Same bytes.\n- RFC 9420 \u00a76.3.2's struct is `SenderData`, not `MLSSenderData` (two places).\n- \"OPTIONAL, accepting\" comma splice \u2192 semicolon.\n- Lowercase \"forward secrecy\" and \"post-compromise security\" in running text; section titles unchanged.\n- Expand MTI in the test-vector section.\n\nLeft alone: the empty Acknowledgments section, which is yours to fill or drop.\n\nNot built locally (no kramdown-rfc here).\n",
       "createdAt": "2026-10-21T18:00:11Z",
-      "updatedAt": "2026-10-29T00:14:49Z",
+      "updatedAt": "2026-11-02T19:09:53Z",
       "baseRepository": "mlswg/mls-targeted-messages",
       "baseRefName": "main",
       "baseRefOid": "ecd8d7e19f3bb67d689488a0f8674db78e48f8be",
       "headRepository": "MarkAtwood/mls-targeted-messages",
       "headRefName": "editorial",
-      "headRefOid": "114d60532434b97c2bfd3859615a9f0d29d664dd",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "7b6105e7b4e67888b2d9b2f8b34c791038f58037",
+      "closedAt": "2026-11-02T19:09:53Z",
+      "mergedAt": "2026-11-02T19:09:53Z",
+      "mergedBy": "raphaelrobert",
+      "mergeCommit": {
+        "oid": "aa4f6b3f35b10e048b586eb8798895c340c94c1e"
+      },
       "comments": [],
       "reviews": [
         {
@@ -516,24 +582,26 @@
       "id": "PR_kwDOPFs6J88AAAABJ2mvTQ",
       "title": "Specify how mls_targeted_message support is signalled",
       "url": "https://github.com/mlswg/mls-targeted-messages/pull/14",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "MarkAtwood",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Fixes #11.\n\nAdds a normative reference to draft-ietf-mls-extensions, says support is signalled with `supported_wire_formats` and `required_wire_formats`, and adds the rule: a sender MUST NOT send a TargetedMessage to a member whose LeafNode doesn't list `mls_targeted_message`, unless the GroupContext's `required_wire_formats` includes it.\n",
       "createdAt": "2026-10-21T18:11:14Z",
-      "updatedAt": "2026-10-28T23:52:53Z",
+      "updatedAt": "2026-11-02T19:11:16Z",
       "baseRepository": "mlswg/mls-targeted-messages",
       "baseRefName": "main",
       "baseRefOid": "ecd8d7e19f3bb67d689488a0f8674db78e48f8be",
       "headRepository": "MarkAtwood/mls-targeted-messages",
       "headRefName": "issue-11",
-      "headRefOid": "17743ddd61a4688d116fab61d3948512ab491b1d",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "a3a94a84a484f5ffb47ba66f302322b3b3ec6d6d",
+      "closedAt": "2026-11-02T19:11:15Z",
+      "mergedAt": "2026-11-02T19:11:15Z",
+      "mergedBy": "raphaelrobert",
+      "mergeCommit": {
+        "oid": "e598d39897f4ecef67b392421dd3aed39b2534f1"
+      },
       "comments": [],
       "reviews": [
         {
@@ -555,6 +623,19 @@
               "updatedAt": "2026-10-28T23:52:53Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOPFs6J88AAAABVj7vmQ",
+          "commit": {
+            "abbreviatedOid": "a3a94a8"
+          },
+          "author": "raphaelrobert",
+          "authorAssociation": "MEMBER",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-02T19:11:08Z",
+          "updatedAt": "2026-11-02T19:11:08Z",
+          "comments": []
         }
       ]
     },
@@ -563,47 +644,63 @@
       "id": "PR_kwDOPFs6J88AAAABJ2mx4A",
       "title": "Correct forward secrecy: leaf keys don't rotate per epoch",
       "url": "https://github.com/mlswg/mls-targeted-messages/pull/15",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "MarkAtwood",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Fixes #12.\n\nThe Forward Secrecy section says per-epoch forward secrecy depends on \"the recipient deleting the previous epoch's leaf private key\". There is no per-epoch leaf key under RFC 9420; what makes old targeted messages unreadable is deleting the epoch's exporter secret, since `targeted_message_psk` comes from it and HPKE PSK mode needs it to decrypt. This changes that one phrase. The rest of the section is unchanged, per the discussion on #12.",
       "createdAt": "2026-10-21T18:11:16Z",
-      "updatedAt": "2026-10-31T21:19:51Z",
+      "updatedAt": "2026-11-02T22:26:36Z",
       "baseRepository": "mlswg/mls-targeted-messages",
       "baseRefName": "main",
       "baseRefOid": "ecd8d7e19f3bb67d689488a0f8674db78e48f8be",
       "headRepository": "MarkAtwood/mls-targeted-messages",
       "headRefName": "issue-12",
       "headRefOid": "c6faa1fcde2c59d8c2a7d3c95162a378a3e194a5",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-11-02T22:26:36Z",
+      "mergedAt": "2026-11-02T22:26:36Z",
+      "mergedBy": "raphaelrobert",
+      "mergeCommit": {
+        "oid": "0b1dd53b83e17fc3f4f1d3b02f2938ab9ee14231"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOPFs6J88AAAABVlGScA",
+          "commit": {
+            "abbreviatedOid": "c6faa1f"
+          },
+          "author": "raphaelrobert",
+          "authorAssociation": "MEMBER",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-02T20:51:40Z",
+          "updatedAt": "2026-11-02T20:51:40Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 16,
       "id": "PR_kwDOPFs6J88AAAABJ3BYJQ",
       "title": "Low-severity fixes from an implementation review",
       "url": "https://github.com/mlswg/mls-targeted-messages/pull/16",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "MarkAtwood",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Low-severity fixes from reviewing -01 for mimid; each is independent, so drop any you don't want.\n\n- Authentication: the text said the key schedule's forward secrecy and post-compromise security \"extend to targeted messages\", but the exported secrets are valid for a whole epoch, so the sentence now says the guarantee holds only at epoch granularity and points to the Forward Secrecy section.\n- Sender Identity Confidentiality: the section covered only the sender, so a new paragraph notes that `recipient_leaf_index` is sent in the clear and lets a Delivery Service that has the ratchet tree identify each message's recipient, and that padding hides only length, so hiding recipients needs measures such as cover traffic.\n\nNot changed here: whether `TargetedMessage.authenticated_data` must be framed as SafeAAD when the group has `safe_aad` (extensions-10 \u00a75 says AAD \"always starts with\" SafeAAD, which clashes with the raw replay nonce) is a design call for you; and the Appendix A vectors don't exercise the short-ciphertext branch (empty content, 17-byte ciphertext < Nh) or any rejection case, which needs new vectors from an implementation.",
       "createdAt": "2026-10-21T18:45:43Z",
-      "updatedAt": "2026-10-29T00:24:09Z",
+      "updatedAt": "2026-11-02T16:21:50Z",
       "baseRepository": "mlswg/mls-targeted-messages",
       "baseRefName": "main",
       "baseRefOid": "ecd8d7e19f3bb67d689488a0f8674db78e48f8be",
       "headRepository": "MarkAtwood/mls-targeted-messages",
       "headRefName": "lows",
       "headRefOid": "4ee8fbae2ca21c8249bd70258673022ee6c89b44",
-      "closedAt": null,
+      "closedAt": "2026-11-02T16:21:50Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -642,24 +739,86 @@
       "id": "PR_kwDOPFs6J88AAAABLZT6-w",
       "title": "Fix wording on leaf private key deletion requirements",
       "url": "https://github.com/mlswg/mls-targeted-messages/pull/17",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "raphaelrobert",
       "authorAssociation": "MEMBER",
       "assignees": [],
       "labels": [],
       "body": "Alternative to #15.\nFixes #12.",
       "createdAt": "2026-10-29T00:05:26Z",
-      "updatedAt": "2026-10-29T00:05:26Z",
+      "updatedAt": "2026-11-02T22:27:00Z",
       "baseRepository": "mlswg/mls-targeted-messages",
       "baseRefName": "main",
       "baseRefOid": "ecd8d7e19f3bb67d689488a0f8674db78e48f8be",
       "headRepository": "mlswg/mls-targeted-messages",
       "headRefName": "clarify-fs",
       "headRefOid": "79960a75db886c3bf1d1f862e6150a7c6c264ba6",
+      "closedAt": "2026-11-02T22:26:59Z",
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "raphaelrobert",
+          "authorAssociation": "MEMBER",
+          "body": "Closing in favor of #15.",
+          "createdAt": "2026-11-02T22:26:59Z",
+          "updatedAt": "2026-11-02T22:26:59Z"
+        }
+      ],
+      "reviews": []
+    },
+    {
+      "number": 21,
+      "id": "PR_kwDOPFs6J88AAAABMWqNWA",
+      "title": "Add negative and short-ciphertext test vectors",
+      "url": "https://github.com/mlswg/mls-targeted-messages/pull/21",
+      "state": "OPEN",
+      "author": "MarkAtwood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #19.\n\nAdds `valid` and `failure` fields to the test vector format, so a vector can say that a message must be rejected and at which Recipient Validation step. Vectors 1-3 are unchanged and still valid without the new fields.\n\nNew vectors, all MTI suite:\n\n- Vector 4: empty `application_data`, no padding, 17-byte ciphertext, so the whole ciphertext is the sender data sample.\n- Vector 5: ciphertext of exactly KDF.Nh bytes.\n- Vector 6: sender data names a blank leaf (`failure: sender_leaf_index`).\n- Vector 7: correctly signed and decryptable, non-zero padding byte (`failure: padding`).\n\nThey were generated by OpenMLS at b68a50a36 (#2173, the -02 binding) with a negative-vector extension of `targeted_messages/kat.rs`, and checked by an independent Python implementation written from the draft text. All seven appendix vectors, extracted from the rendered markdown, pass both. The Python implementation passes the RFC 9180 Appendix A vectors and the mls-implementations crypto-basics and key-schedule vectors for suites 1-3.\n\nA fuller set of 114 vectors (suites 1-3; ciphertexts of 17, 31, 32 and 33 bytes, 4096-byte content, 256-byte padding; a rejection vector for every validation step) is going to mlswg/mls-implementations separately, and the OpenMLS generator to openmls.\n\nRelated: #20 (no step for a plaintext that doesn't decode; both implementations currently report it as `padding`).\n",
+      "createdAt": "2026-11-02T16:51:34Z",
+      "updatedAt": "2026-11-02T16:51:34Z",
+      "baseRepository": "mlswg/mls-targeted-messages",
+      "baseRefName": "main",
+      "baseRefOid": "ecd8d7e19f3bb67d689488a0f8674db78e48f8be",
+      "headRepository": "MarkAtwood/mls-targeted-messages",
+      "headRefName": "test-vectors",
+      "headRefOid": "33d49afecbf3a6ca91373b14df6dcea0bfc9f4c7",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 22,
+      "id": "PR_kwDOPFs6J88AAAABMa9EuQ",
+      "title": "Prepare draft-02",
+      "url": "https://github.com/mlswg/mls-targeted-messages/pull/22",
+      "state": "MERGED",
+      "author": "raphaelrobert",
+      "authorAssociation": "MEMBER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-11-02T22:36:26Z",
+      "updatedAt": "2026-11-02T22:37:22Z",
+      "baseRepository": "mlswg/mls-targeted-messages",
+      "baseRefName": "main",
+      "baseRefOid": "0b1dd53b83e17fc3f4f1d3b02f2938ab9ee14231",
+      "headRepository": "mlswg/mls-targeted-messages",
+      "headRefName": "raphael/bump-draft-02",
+      "headRefOid": "e15b9285b31bcef06215484ed2d1d45ed0472d1d",
+      "closedAt": "2026-11-02T22:37:22Z",
+      "mergedAt": "2026-11-02T22:37:22Z",
+      "mergedBy": "raphaelrobert",
+      "mergeCommit": {
+        "oid": "3990fa99986e53328a66a3dd9b8babfcc9f22be7"
+      },
       "comments": [],
       "reviews": []
     }
