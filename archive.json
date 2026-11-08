@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-03T05:44:30.363977+00:00",
+  "timestamp": "2026-11-08T04:58:30.533508+00:00",
   "repo": "mlswg/mls-targeted-messages",
   "labels": [
     {
@@ -62,7 +62,7 @@
       "labels": [],
       "body": "As discussed at IETF 125, having a single TargetedMessage encrypted for multiple members at once, insures that if a single message is decrypted by multiple members, it had the same plaintext. This is a very desirable property. A client that does not want this property could sstill send distinct TargetedMessages with different plaintext to different members.\n",
       "createdAt": "2026-04-19T08:23:53Z",
-      "updatedAt": "2026-10-31T19:56:03Z",
+      "updatedAt": "2026-11-07T07:13:37Z",
       "closedAt": null,
       "comments": [
         {
@@ -106,6 +106,20 @@
           "body": "Thanks for the clarifications. I think we have two options here:\n\nOption A: We use TMs as they are specified today to build the Welcome-like construct you describe at the application layer.\n\nOption B: The Welcome-like construct becomes part of the draft instead.\n\nNow let's look at the properties of these options.\n\nEfficiency: They are roughly equivalent (modulo some byte shaving in the wire format).\n\nSecurity: I think this is where we are not really aligned. You seem to imply that Option B is inherently more secure than Option A. In both scenarios, you assume a group member is malicious, and in scenario 2, the DS also colludes with the malicious group member.\n\nCan you describe the attack that could be carried out with Option A, that Option B would prevent? I can't think of any, because both options are the same, except that the degree to which they are standardized varies.",
           "createdAt": "2026-10-31T19:56:03Z",
           "updatedAt": "2026-10-31T19:56:03Z"
+        },
+        {
+          "author": "raphaelrobert",
+          "authorAssociation": "MEMBER",
+          "body": "Updating this thread after having had an offline discussion with Rohan. The major point of contention is not a potential security impact but rather the functionality difference itself: single-leaf vs. multi-leaf. With no discernible security or efficiency benefit, it comes down to what is most useful to applications. The data points on that are rather slim at the time of writing.",
+          "createdAt": "2026-11-06T16:01:42Z",
+          "updatedAt": "2026-11-06T16:01:42Z"
+        },
+        {
+          "author": "rohanmahy",
+          "authorAssociation": "NONE",
+          "body": "I agree that if each application builds the Welcome-style functionality\r\ncorrectly then it as secure as building it into the primitive. However,\r\nsupporting a single TargetedMessage for multiple leaves once and\r\nimplementing it in the stacks will effectively result in better security\r\nthan lots of apps trying to roll their own.\r\n\r\nAlso in the MIMI case, a TagetedMessage could be franked which would result\r\nin a single consistent hub timestamp among multiple clients of the same\r\nparticipant.\r\n\r\nOn Fri, 6 Nov 2026, 17:02 raphaelrobert, ***@***.***> wrote:\r\n\r\n> *raphaelrobert* left a comment (mlswg/mls-targeted-messages#4)\r\n> <https://github.com/mlswg/mls-targeted-messages/issues/4#issuecomment-6689269556>\r\n>\r\n> Updating this thread after having had an offline discussion with Rohan.\r\n> The major point of contention is not a potential security impact but rather\r\n> the functionality difference itself: single-leaf vs. multi-leaf. With no\r\n> discernible security or efficiency benefit, it comes down to what is most\r\n> useful to applications. The data points on that are rather slim at the time\r\n> of writing.\r\n>\r\n> \u2014\r\n> Reply to this email directly, view it on GitHub\r\n> <https://github.com/mlswg/mls-targeted-messages/issues/4?email_source=notifications&email_token=AADSQPSWNROSJK65MK27ATL5XXYXXA5CNFSNUABFM5UWIORPF5TWS5BNNB2WEL2JONZXKZKDN5WW2ZLOOQXTMNRYHEZDMOJVGU3KM4TFMFZW63VGMF2XI2DPOKSWK5TFNZ2KYZTPN52GK4S7MNWGSY3L#issuecomment-6689269556>,\r\n> or unsubscribe\r\n> <https://github.com/notifications/unsubscribe-auth/AADSQPSW3FEWBUINOXGBA735XXYXXAVCNFSNUABGKJSXA33TNF2G64TZHMYTAMJSGYYTCNRSGM5US43TOVSTWNBSHEYDGMRWHE3DNILWAI>\r\n> .\r\n> Triage notifications, keep track of coding agent tasks and review pull\r\n> requests on the go with GitHub Mobile for iOS\r\n> <https://github.com/notifications/mobile/ios/AADSQPR53FZUQ276US237YT5XXYXXA5CNFSNUABFM5UWIORPF5TWS5BNNB2WEL2JONZXKZKDN5WW2ZLOOQXTMNRYHEZDMOJVGU3KM4TFMFZW63VGMF2XI2DPOKSWK5TFNZ2KUZTPN52GK4S7NFXXG>\r\n> and Android\r\n> <https://github.com/notifications/mobile/android/AADSQPXTYPNHZ2TOE7JBBBT5XXYXXA5CNFSNUABFM5UWIORPF5TWS5BNNB2WEL2JONZXKZKDN5WW2ZLOOQXTMNRYHEZDMOJVGU3KM4TFMFZW63VGMF2XI2DPOKSWK5TFNZ2K4ZTPN52GK4S7MFXGI4TPNFSA>.\r\n> Download it today!\r\n> You are receiving this because you authored the thread.Message ID:\r\n> ***@***.***>\r\n>\r\n",
+          "createdAt": "2026-11-07T07:13:36Z",
+          "updatedAt": "2026-11-07T07:13:36Z"
         }
       ]
     },
