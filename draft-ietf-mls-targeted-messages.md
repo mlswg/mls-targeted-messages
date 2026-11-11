@@ -199,6 +199,12 @@ application-specific data that is authenticated but not encrypted. The content
 of this field is used as the `aad` parameter of the HPKE encryption
 ({{application-data-encryption}}).
 
+If the `safe_aad` component is present in the `app_data_dictionary` extension
+of the group's `GroupContext`, even with an empty list, the
+`TargetedMessage.authenticated_data` field is framed as a `SafeAAD` struct, as
+for PublicMessage and PrivateMessage
+({{Section 4.9 of I-D.ietf-mls-extensions}}).
+
 # Encryption
 
 Targeted messages use HPKE to encrypt the message content to a specific group
@@ -494,7 +500,10 @@ epoch and will pass all validation checks. However, targeted messages are a
 stateless one-shot mechanism: replaying a message causes the recipient to see
 duplicate content but does not change any group state. Applications that require
 replay detection SHOULD include a unique nonce in the `authenticated_data`
-field and track previously seen values.
+field and track previously seen values. In a group that uses Safe AAD
+({{Section 4.9 of I-D.ietf-mls-extensions}}), the nonce is carried in the
+`aad_item_data` of a `SafeAADItem` for an application component, not as raw
+bytes.
 
 # IANA Considerations
 
