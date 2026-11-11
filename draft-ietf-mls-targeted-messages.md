@@ -357,8 +357,8 @@ steps in order:
  - Compute `ciphertext_hash` from `TargetedMessage.ciphertext` and verify the
    signature as described in {{authentication}}.
  - Decrypt `ciphertext` as described in {{application-data-encryption}}.
- - Verify that the `padding` field of the decrypted `TargetedMessageContent`
-   contains only zero bytes, as described in {{padding}}.
+ - Decode the plaintext as a `TargetedMessageContent` and verify that its
+   `padding` field contains only zero bytes, as described in {{padding}}.
 
 The signature MUST be verified before `ciphertext` is decrypted. The
 `TargetedMessageTBS` struct covers the `ciphertext` only through its hash,
