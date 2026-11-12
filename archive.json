@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-10T06:23:31.742034+00:00",
+  "timestamp": "2026-11-12T06:13:41.179598+00:00",
   "repo": "mlswg/mls-targeted-messages",
   "labels": [
     {
@@ -833,6 +833,58 @@
       "mergeCommit": {
         "oid": "3990fa99986e53328a66a3dd9b8babfcc9f22be7"
       },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 23,
+      "id": "PR_kwDOPFs6J88AAAABOe9WBQ",
+      "title": "Make decoding TargetedMessageContent a validation step",
+      "url": "https://github.com/mlswg/mls-targeted-messages/pull/23",
+      "state": "OPEN",
+      "author": "MarkAtwood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #20.\n\nRecipient Validation checked the padding of the decrypted content but had no step for a plaintext that decrypts yet doesn't decode as `TargetedMessageContent`. This folds decoding into the last step, so the existing \"If any of these steps fails, the `TargetedMessage` MUST be rejected\" covers it. No other text changes.",
+      "createdAt": "2026-11-11T21:23:32Z",
+      "updatedAt": "2026-11-11T21:23:32Z",
+      "baseRepository": "mlswg/mls-targeted-messages",
+      "baseRefName": "main",
+      "baseRefOid": "3990fa99986e53328a66a3dd9b8babfcc9f22be7",
+      "headRepository": "MarkAtwood/mls-targeted-messages",
+      "headRefName": "issue-20",
+      "headRefOid": "7048683df5eb2ffa862352b01f5ebb215fae1e19",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 24,
+      "id": "PR_kwDOPFs6J88AAAABOe9XgQ",
+      "title": "Apply Safe AAD framing to TargetedMessage.authenticated_data",
+      "url": "https://github.com/mlswg/mls-targeted-messages/pull/24",
+      "state": "OPEN",
+      "author": "MarkAtwood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #18, taking option 1.\n\nWhen the `safe_aad` component is present in the GroupContext's `app_data_dictionary`, even with an empty list, `TargetedMessage.authenticated_data` is framed as a `SafeAAD` struct, as for PublicMessage and PrivateMessage (mls-extensions \u00a74.9 and \u00a75). Replay Protection now says that in such a group the nonce goes in a `SafeAADItem` for an application component rather than as raw bytes.\n\nThe test vectors don't use `safe_aad`, so they are unchanged.",
+      "createdAt": "2026-11-11T21:23:34Z",
+      "updatedAt": "2026-11-11T21:23:34Z",
+      "baseRepository": "mlswg/mls-targeted-messages",
+      "baseRefName": "main",
+      "baseRefOid": "3990fa99986e53328a66a3dd9b8babfcc9f22be7",
+      "headRepository": "MarkAtwood/mls-targeted-messages",
+      "headRefName": "issue-18",
+      "headRefOid": "fc303f288f756936a4b6527cae94da7e10d7a155",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
       "comments": [],
       "reviews": []
     }
